@@ -1,0 +1,36 @@
+{
+  "name": "Django React Postgres Dev Env",
+  // Point to the docker-compose file to use.
+  "dockerComposeFile": "../docker-compose.yml",
+  // The service VS Code should attach to. We'll work primarily in the backend.
+  "service": "backend",
+  // The folder inside the container where your project will be.
+  "workspaceFolder": "/app",
+  // Forwarding ports from the container to your local machine.
+  "forwardPorts": [
+    8000, // Django
+    3000, // React
+    5432  // PostgreSQL
+  ],
+  // VS Code customizations.
+  "customizations": {
+    "vscode": {
+      // A list of extensions to install automatically inside the container.
+      "extensions": [
+        "ms-python.python",
+        "ms-python.django",
+        "batisteo.vscode-django",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode-remote.remote-containers",
+        "humao.rest-client"
+      ]
+    }
+  },
+  // A command to run after the container is created.
+  // This installs dependencies for both frontend and backend.
+  "postCreateCommand": "pip install -r requirements.txt && npm install --prefix ../frontend",
+  // The user to run as inside the container. 'vscode' is a non-root user.
+  "remoteUser": "vscode"
+}
