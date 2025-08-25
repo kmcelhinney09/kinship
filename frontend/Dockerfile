@@ -1,19 +1,18 @@
-# Use a specific Node.js version. Alpine images are smaller.
+# frontend/Dockerfile
+# Dockerfile for the React frontend service.
+
+# Use official Node.js image
 FROM node:18-alpine
 
-# Set the working directory inside the container.
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock) to leverage caching.
-COPY package*.json ./
-
-# Install project dependencies.
+# Install dependencies first for better caching
+COPY package.json ./
 RUN npm install
 
-# Copy the rest of the application source code.
+# Copy the rest of the frontend code
 COPY . .
 
-# Expose the port the React app runs on.
+# Expose React dev server port
 EXPOSE 3000
-
-# The command to start the app will be specified in docker-compose.yml

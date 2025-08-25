@@ -1,56 +1,51 @@
-version: '3.8'
+# docker-compose.yml
+# This file defines the multi-container setup for the Kinship project.
+# It includes services for the PostgreSQL database, Django backend, and React frontend.
+
+version: '3.9'
 
 services:
-  # The PostgreSQL Database Service
   db:
-    image: postgres:15-alpine
-    container_name: postgres_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    image: postgres:15-alpine  # Lightweight Postgres image
     environment:
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=devpassword
-      - POSTGRES_DB=devdb
+      POSTGRES_USER: kinship_user
+      POSTGRES_PASSWORD: kinship_password
+      POSTGRES_DB: kinship_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expose Postgres port to host
     restart: unless-stopped
 
-  # The Django Backend Service
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: django_backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
+      - ./backend:/app  # Mount backend code for live reload
     environment:
-      - POSTGRES_NAME=devdb
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=devpassword
-      - POSTGRES_HOST=db
+      POSTGRES_DB: kinship_db
+      POSTGRES_USER: kinship_user
+      POSTGRES_PASSWORD: kinship_password
+      POSTGRES_HOST: db  # Use service name for DB host
+      POSTGRES_PORT: 5432
+    ports:
+      - "8000:8000"  # Expose Django dev server
     depends_on:
       - db
     restart: unless-stopped
 
-  # The React Frontend Service
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: react_frontend
-    command: npm start
+    command: npm start  # Start React dev server
     volumes:
-      # Mount the code
-      - ./frontend:/app
-      # Also mount the node_modules directory as a volume to prevent
-      # the local node_modules from overwriting the one in the container.
-      - /app/node_modules
+      - ./frontend:/app  # Mount frontend code for live reload
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Expose React dev server
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_data:  # Named volume for Postgres persistence
