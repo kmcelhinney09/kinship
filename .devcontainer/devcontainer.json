@@ -5,9 +5,9 @@
   "dockerComposeFile": [
     "../docker-compose.yml"
   ],
-  "service": "backend", // Attach VS Code to the backend container
-  "workspaceFolder": "/app", // Set workspace folder inside the container
-  "forwardPorts": [8000, 3000, 5432], // Forward backend, frontend, and DB ports
+  "service": "dev", // Attach VS Code to the simplified service
+  "workspaceFolder": "/workspace", // Set workspace folder inside the container
+  "forwardPorts": [8000, 3000], // Forward backend and frontend ports
   "customizations": {
     "vscode": {
       "extensions": [
@@ -18,6 +18,5 @@
       ]
     }
   },
-  "remoteUser": "vscode", // Use the non-root user
-  "postCreateCommand": "pip install --user --upgrade pip"
+  "remoteUser": "vscode" // Use the non-root user
 }

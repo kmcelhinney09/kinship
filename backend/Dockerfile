@@ -2,7 +2,7 @@
 # Dockerfile for the Django REST API backend service.
 
 # Use official Python image
-FROM python:3.11-slim-buster
+FROM python:3.11-slim-bookworm
 
 # Set working directory
 WORKDIR /app
@@ -16,8 +16,13 @@ RUN apt-get update \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create a non-root user for VS Code
-RUN useradd -m vscode
+# Create a non-root user for VS Code with specific UID and GID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} vscode \
+    && useradd -m -s /bin/bash -u ${USER_ID} -g ${GROUP_ID} vscode \
+    && mkdir -p /app \
+    && chown vscode:vscode /app
 USER vscode
 
 # Copy the rest of the backend code

@@ -2,50 +2,14 @@
 # This file defines the multi-container setup for the Kinship project.
 # It includes services for the PostgreSQL database, Django backend, and React frontend.
 
-version: '3.9'
-
 services:
-  db:
-    image: postgres:15-alpine  # Lightweight Postgres image
+  dev:
+    image: mcr.microsoft.com/vscode/devcontainers/python:3.11
+    volumes:
+      - .:/workspace
+    ports:
+      - "8000:8000" # Django
+      - "3000:3000" # React
     environment:
-      POSTGRES_USER: kinship_user
-      POSTGRES_PASSWORD: kinship_password
-      POSTGRES_DB: kinship_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persist database data
-    ports:
-      - "5432:5432"  # Expose Postgres port to host
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - ./backend:/app  # Mount backend code for live reload
-    environment:
-      POSTGRES_DB: kinship_db
-      POSTGRES_USER: kinship_user
-      POSTGRES_PASSWORD: kinship_password
-      POSTGRES_HOST: db  # Use service name for DB host
-      POSTGRES_PORT: 5432
-    ports:
-      - "8000:8000"  # Expose Django dev server
-    depends_on:
-      - db
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    command: npm start  # Start React dev server
-    volumes:
-      - ./frontend:/app  # Mount frontend code for live reload
-    ports:
-      - "3000:3000"  # Expose React dev server
-    restart: unless-stopped
-
-volumes:
-  postgres_data:  # Named volume for Postgres persistence
+      - NODE_VERSION=18
+    command: tail -f /dev/null
