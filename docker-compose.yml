@@ -3,6 +3,19 @@
 # It includes services for the PostgreSQL database, Django backend, and React frontend.
 
 services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: devdb
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    container_name: postgres_db
+
   dev:
     image: mcr.microsoft.com/vscode/devcontainers/python:3.11
     volumes:
@@ -12,4 +25,14 @@ services:
       - "3000:3000" # React
     environment:
       - NODE_VERSION=18
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpassword
+    depends_on:
+      - db
     command: tail -f /dev/null
+
+# Named volumes
+volumes:
+  postgres_data:

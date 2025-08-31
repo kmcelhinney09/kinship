@@ -7,7 +7,7 @@
   ],
   "service": "dev", // Attach VS Code to the simplified service
   "workspaceFolder": "/workspace", // Set workspace folder inside the container
-  "forwardPorts": [8000, 3000], // Forward backend and frontend ports
+  "forwardPorts": [8000, 3000, 5432], // Forward backend, frontend, and PostgreSQL ports
   "customizations": {
     "vscode": {
       "extensions": [
