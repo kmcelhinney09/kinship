@@ -1,23 +1,22 @@
 {
-  // devcontainer.json
-  // VS Code Development Container configuration for Kinship project
-  "name": "Kinship DevContainer",
+  "name": "Kinship - Django & React",
   "dockerComposeFile": [
-    "../docker-compose.yml"
+    "docker-compose.yml"
   ],
-  "service": "dev", // Attach VS Code to the simplified service
-  "workspaceFolder": "/workspace", // Set workspace folder inside the container
-  "forwardPorts": [8000, 3000, 5432], // Forward backend, frontend, and PostgreSQL ports
+  "service": "dev",
+  "workspaceFolder": "/app",
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python", // Python support
-        "ms-python.django", // Django support
-        "esbenp.prettier-vscode", // Prettier for code formatting
-        "ms-azuretools.vscode-docker" // Docker extension
-      ]
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3"
+      }
     }
   },
-  "remoteUser": "vscode", // Use the non-root user
-  "postCreateCommand": "sudo apt update && sudo apt install -y npm"
+  "remoteUser": "node"
 }

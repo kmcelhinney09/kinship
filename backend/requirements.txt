@@ -1,6 +1,0 @@
-# Minimal requirements.txt for Kinship backend
-django
-djangorestframework
-psycopg2-binary
-django-cors-headers
-python-dotenv

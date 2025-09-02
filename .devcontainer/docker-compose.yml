@@ -1,0 +1,66 @@
+# .devcontainer/docker-compose.yml
+# This file is used by the Dev Containers extension to set up your environment.
+
+services:
+  # The 'dev' service defines your main development container
+  dev:
+    # Use the parent directory (the project root) as the build context
+    build:
+      context: ../
+      # Specify the location of your Dockerfile relative to the new context
+      dockerfile: Dockerfile
+    
+    # Keep the container running for development
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
+    # Map the project root on your local machine to /app in the container
+    volumes:
+      - type: bind
+        source: ../
+        target: /app
+        bind:
+          create_host_path: true
+    
+    # Define environment variables for the application
+    environment:
+      DB_HOST: db
+      DB_NAME: kinship_db
+      DB_PASSWORD: kinship_password
+      DB_USER: kinship_user
+    
+    # Expose ports for your application
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+      
+    # Ensure the dev service waits for the database service to be ready
+    depends_on:
+      db:
+        condition: service_started
+        
+  # The 'db' service for your PostgreSQL database
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kinship_user
+      POSTGRES_PASSWORD: kinship_password
+      POSTGRES_DB: kinship_db
+    
+    # Map the database port
+    ports:
+      - "5432:5432"
+    
+    # Persist the database data in a named volume
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Define named volumes
+volumes:
+  postgres_data:
+    name: devcontainer_postgres_data
+
+# Define a default network
+networks:
+  default:
+    name: devcontainer_default

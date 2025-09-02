@@ -1,10 +1,10 @@
-import React from 'react';
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <h1>Welcome to React with TypeScript!</h1>
-    </div>
+    <>
+      <h1>Welcome to Kinship!</h1>
+    </>
   );
 }
 
