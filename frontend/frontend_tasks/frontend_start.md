@@ -6,12 +6,12 @@ This document lists a detailed, ordered task list to scaffold and configure the 
 
 High-level checklist
 --------------------
-- [ ] Create Vite React+TS scaffold in `./frontend`
-- [ ] Install runtime & dev dependencies (TanStack, axios, ESLint, Prettier, Vitest, testing libs)
-- [ ] Add npm scripts (dev/build/preview/test/lint/format)
-- [ ] Add core app files: `src/main.tsx`, `src/App.tsx`, `src/index.css`
+- [x] Create Vite React+TS scaffold in `./frontend`
+- [x] Install runtime & dev dependencies (TanStack Query + TanStack Router, axios, ESLint, Prettier, Vitest, testing libs)
+- [x] Add npm scripts (dev/build/preview/test/lint/format)
+- [x] Add core app files: `src/main.tsx`, `src/index.css`, file-based routes `src/routes/__root.tsx`, `src/routes/index.tsx`
 - [ ] Add services: `src/services/apiClient.ts`, `src/services/queryClient.ts`
-- [ ] Configure Vite dev proxy for backend
+- [ ] Configure Vite dev proxy for backend and enable TanStack Router Vite plugin
 - [ ] Add ESLint + Prettier configs
 - [ ] Add basic Vitest test and config
 - [ ] Commit scaffold and add CI step (lint/build/test)
@@ -35,15 +35,15 @@ cd frontend
 npm install
 ```
 
-Task 2 — Install runtime deps (TanStack + axios) and dev tools
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Task 2 — Install runtime deps (TanStack Query + Router, axios) and dev tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ```bash
 # runtime deps
-npm install @tanstack/react-query axios
+npm install @tanstack/react-query @tanstack/react-router @tanstack/router-devtools axios
 
-# dev/test/lint/format deps
-npm install -D eslint prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin vitest jsdom @testing-library/react @testing-library/jest-dom
+# dev/test/lint/format deps (includes router plugin for file-based routes)
+npm install -D @tanstack/router-plugin eslint prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin vitest jsdom @testing-library/react @testing-library/jest-dom
 ```
 
 Task 3 — Add npm scripts
@@ -61,58 +61,92 @@ Open `package.json` and ensure the following scripts exist. Add or replace the `
 }
 ```
 
-Task 4 — Core app files
-~~~~~~~~~~~~~~~~~~~~~~~~
+Task 4 — Core app files (with TanStack Router file-based routes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Create the following files and contents.
 
 1) `src/main.tsx`
 
 ```tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import App from "./App";
-import "./index.css";
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { routeTree } from './routeTree.gen'
+import { queryClient } from './services/queryClient'
+import './index.css'
 
-const queryClient = new QueryClient();
+const router = createRouter({ routeTree, context: { queryClient } })
 
-createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </React.StrictMode>
-);
-```
-
-2) `src/App.tsx`
-
-```tsx
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-
-async function fetchHello() {
-  const { data } = await axios.get("/api/hello");
-  return data;
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
 }
 
-export default function App(): JSX.Element {
-  const { data, isLoading, error } = useQuery(["hello"], fetchHello);
+createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  </React.StrictMode>,
+)
+```
 
-  if (isLoading) return <div>Loading…</div>;
-  if (error) return <div>Error</div>;
+2) `src/routes/__root.tsx`
 
+```tsx
+import * as React from 'react'
+import { Outlet, createRootRoute } from '@tanstack/react-router'
+
+/**
+ * Root route providing the app shell and layout.
+ */
+export const Route = createRootRoute({
+  component: function RootLayout(): JSX.Element {
+    return (
+      <div style={{ padding: 16 }}>
+        <Outlet />
+      </div>
+    )
+  },
+})
+```
+
+3) `src/routes/index.tsx` (home route)
+
+```tsx
+import * as React from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import apiClient from '../services/apiClient'
+
+async function fetchHello(): Promise<unknown> {
+  const { data } = await apiClient.get('/api/hello')
+  return data
+}
+
+function HomePage(): JSX.Element {
+  const { data, isLoading, error } = useQuery({ queryKey: ['hello'], queryFn: fetchHello })
+  if (isLoading) return <div>Loading…</div>
+  if (error) return <div>Error</div>
   return (
     <div>
       <h1>Kinship Frontend</h1>
       <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
-  );
+  )
 }
+
+export const Route = createFileRoute('/')({
+  // Preload data with loader (optional but recommended)
+  loader: async ({ context: { queryClient } }) =>
+    queryClient.ensureQueryData({ queryKey: ['hello'], queryFn: fetchHello }),
+  component: HomePage,
+})
 ```
 
-3) `src/index.css` (basic reset)
+4) `src/index.css` (basic reset)
 
 ```css
 html,body,#root { height: 100%; margin: 0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
@@ -162,14 +196,15 @@ Task 6 — Vite config + dev proxy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If your backend runs on a separate port (common: FastAPI on 8000), configure Vite dev server proxy so `fetch('/api/...')` forwards to backend.
 
-Edit or create `vite.config.ts` with the proxy snippet:
+Edit or create `vite.config.ts` with the Router plugin and proxy snippet:
 
 ```ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), TanStackRouterVite()],
   server: {
     proxy: {
       '/api': {
@@ -216,14 +251,15 @@ Create a minimal `.prettierrc`:
 
 Task 8 — Vitest config and a basic test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Create `vitest.config.ts` at project root (frontend):
+Create `vitest.config.ts` at project root (frontend) with the Router plugin so file-based routes are generated for tests:
 
 ```ts
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), TanStackRouterVite()],
   test: {
     environment: 'jsdom',
     globals: true,
@@ -231,14 +267,24 @@ export default defineConfig({
 })
 ```
 
-Create a simple test `src/__tests__/App.test.tsx`:
+Create a simple test `src/__tests__/HomeRoute.test.tsx`:
 
 ```tsx
 import { render, screen } from '@testing-library/react'
-import App from '../App'
+import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { routeTree } from '../../routeTree.gen'
 
-test('renders kinship heading', () => {
-  render(<App />)
+test('renders Kinship heading on home route', () => {
+  const queryClient = new QueryClient()
+  const router = createRouter({ routeTree, context: { queryClient } })
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
+
   expect(screen.getByText(/Kinship Frontend/i)).toBeInTheDocument()
 })
 ```
@@ -274,8 +320,8 @@ jobs:
 
 Task 10 — Optional sensible next steps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Add Material UI (MUI) if you plan to use it: `npm install @mui/material @emotion/react @emotion/styled`
-- Add TanStack Router and colocated routes when you begin building pages: `npm install @tanstack/react-router`
+- Add Material UI (MUI): `npm install @mui/material @emotion/react @emotion/styled` and wrap your app with baseline/theme.
+- Add Router Devtools in development to inspect routes: `import { RouterDevtools } from '@tanstack/router-devtools'` and include `<RouterDevtools />` inside the root layout.
 - Add generator step for TypeScript models from backend Pydantic models later (datamodel-code-generator) and commit generated types into `src/types`.
 
 Try it — quick run commands
