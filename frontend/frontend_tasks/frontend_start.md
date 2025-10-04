@@ -10,6 +10,7 @@ High-level checklist
 - [x] Install runtime & dev dependencies (TanStack Query + TanStack Router, axios, ESLint, Prettier, Vitest, testing libs)
 - [x] Add npm scripts (dev/build/preview/test/lint/format)
 - [x] Add core app files: `src/main.tsx`, `src/index.css`, file-based routes `src/routes/__root.tsx`, `src/routes/index.tsx`
+- [x] Wire Material UI (ThemeProvider + CssBaseline) and load Roboto font
 - [ ] Add services: `src/services/apiClient.ts`, `src/services/queryClient.ts`
 - [ ] Configure Vite dev proxy for backend and enable TanStack Router Vite plugin
 - [ ] Add ESLint + Prettier configs
