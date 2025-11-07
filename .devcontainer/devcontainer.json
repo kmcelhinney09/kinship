@@ -2,23 +2,38 @@
   "name": "Kinship Dev",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceFolder": "/workspaces/kinship",
+
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
     }
+    // The gcloud feature is REMOVED from here, as it's now in the Dockerfile.
   },
+
+  // ... (GCLOUD AUTHENTICATION REMAINS CRITICAL)
+  "runServices": ["app", "db"],
+  "mounts": [
+    // This part is VITAL for logging in and must stay!
+    "source=${env:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "CLOUDSDK_CONFIG": "/home/vscode/.config/gcloud"
+  },
+  
   "customizations": {
     "vscode": {
       "extensions": [
+        "ms-python.vscode-python-envs",
+        "DavidAnson.vscode-markdownlint",
+        "ms-python.debugpy",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-azuretools.vscode-docker",
-        "esbenp.prettier-vscode",
-        "github.copilot",
-        "github.copilot-chat"
+        "GitHub.copilot-chat",
+        "GitHub.copilot",
+        "dbaeumer.vscode-eslint"
       ]
     }
   },
-  "forwardPorts": [8000, 5173]
+  "forwardPorts": [8000, 5173, 8001]
 }
