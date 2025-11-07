@@ -8,13 +8,11 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
     }
-    // The gcloud feature is REMOVED from here, as it's now in the Dockerfile.
+
   },
 
-  // ... (GCLOUD AUTHENTICATION REMAINS CRITICAL)
-  "runServices": ["app", "db"],
+  "runServices": ["app"],
   "mounts": [
-    // This part is VITAL for logging in and must stay!
     "source=${env:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached"
   ],
   "containerEnv": {
@@ -31,9 +29,12 @@
         "ms-python.vscode-pylance",
         "GitHub.copilot-chat",
         "GitHub.copilot",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "google.gemini-cli-vscode-ide-companion"
       ]
     }
   },
-  "forwardPorts": [8000, 5173, 8001]
+  "forwardPorts": [8000, 5173, 8001],
+  "postAttachCommand": "uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload &",
+  "postCreateCommand": "npm install -g npm@latest && npm install -g @google/gemini-cli"
 }

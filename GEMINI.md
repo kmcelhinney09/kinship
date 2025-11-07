@@ -4,7 +4,7 @@
 
 This is a web application called "kinship", designed to help families keep track of calendars, chores, grocery lists, and meal planning.
 
-The project is a monorepo with a `frontend` and a `backend` directory. Currently, only the frontend is developed.
+The project is a monorepo with a `frontend` and a `backend` directory.
 
 The frontend is a modern web application built with:
 
@@ -15,9 +15,15 @@ The frontend is a modern web application built with:
 *   **TanStack React Query**: A data-fetching and state management library.
 *   **Material-UI (MUI)**: A popular React UI framework for faster and easier web development.
 
-The backend is not yet implemented.
+The backend is built with:
+
+*   **FastAPI**: A modern, fast web framework for building APIs.
+*   **SQLite**: A lightweight, serverless, self-contained SQL database engine.
+*   **SQLAlchemy**: A SQL toolkit and Object Relational Mapper for Python.
 
 ## Building and Running
+
+### Frontend
 
 The frontend application is managed with npm. The following commands are available in the `/frontend` directory:
 
@@ -28,6 +34,15 @@ The frontend application is managed with npm. The following commands are availab
 *   **`npm run test`**: Runs the tests using `vitest`.
 *   **`npm run lint`**: Lints the code using ESLint to find and fix problems.
 *   **`npm run format`**: Formats the code using Prettier.
+
+### Backend
+
+The backend application is managed with `uv`. The following commands are available from the root directory:
+
+*   **`uv pip install -r backend/pyproject.toml`**: Installs the dependencies.
+*   **`uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload`**: Starts the development server.
+
+When using the dev container, the backend server will be started automatically.
 
 ## Development Conventions
 

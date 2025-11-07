@@ -9,10 +9,8 @@ ENV PYTHONUNBUFFERED=1
 # Install OS dependencies required for Python, Docker (sudo), and gcloud
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg git build-essential \
-    libpq-dev sudo \
+    sqlite3 sudo \
     && rm -rf /var/lib/apt/lists/*
-
-# Node.js is provided via devcontainer Feature in devcontainer.json (This feature is still active)
 
 # Create a non-root user (vscode) to match devcontainers convention
 RUN useradd -m -s /bin/bash vscode \
