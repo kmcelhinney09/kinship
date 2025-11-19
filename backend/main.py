@@ -1,58 +1,35 @@
-from fastapi import FastAPI, Depends
-from sqlalchemy import create_engine, Column, Integer, String, MetaData, Table
-from sqlalchemy.orm import sessionmaker, Session
-from pydantic import BaseModel
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from .database import engine, Base
+from .routers import users, calendar, meals, chores
 
-DATABASE_URL = "sqlite:///./backend/kinship.db"
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-metadata = MetaData()
+app = FastAPI(title="Kinship API", description="API for Family Command Center", version="0.1.0")
 
-tasks = Table(
-    "tasks",
-    metadata,
-    Column("id", Integer, primary_key=True, index=True),
-    Column("title", String, index=True),
-    Column("description", String),
+# CORS configuration
+origins = [
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:4173",  # Vite preview
+    "http://127.0.0.1:5173",
+    "*" # Allow all for local dev convenience on Pi
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-metadata.create_all(bind=engine)
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "app": "Kinship"}
 
-app = FastAPI()
-
-class TaskBase(BaseModel):
-    title: str
-    description: str | None = None
-
-class TaskCreate(TaskBase):
-    pass
-
-class Task(TaskBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.post("/tasks/", response_model=Task)
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    db_task = tasks.insert().values(title=task.title, description=task.description)
-    result = db.execute(db_task)
-    db.commit()
-    return {"id": result.lastrowid, **task.dict()}
-
-@app.get("/tasks/", response_model=list[Task])
-def read_tasks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    query = tasks.select().offset(skip).limit(limit)
-    return db.execute(query).fetchall()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# Include routers (commented out until created)
+app.include_router(users.router)
+app.include_router(calendar.router)
+app.include_router(meals.router)
+app.include_router(chores.router)
