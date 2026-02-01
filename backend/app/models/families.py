@@ -14,4 +14,4 @@ class Family(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     invite_code: Mapped[str] = mapped_column(String, unique=True, nullable=True)
     
-    users: Mapped[list["User"]] = relationship("User", back_populates="family")
+    users: Mapped[list["User"]] = relationship("User", back_populates="family", cascade="all, delete-orphan")
