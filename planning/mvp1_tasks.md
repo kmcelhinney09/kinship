@@ -7,10 +7,10 @@
 - [x] User Approval of Master Plan
 
 ## 🏗️ Phase 1: Foundation Setup
-- [ ] Configure `uv` for Backend
-- [ ] Setup TypeScript + TanStack Router
-- [ ] Configure TanStack Query in Frontend
-- [ ] Database Connection & Alembic Init
+- [x] Configure `uv` for Backend
+- [x] Setup TypeScript + TanStack Router
+- [x] Configure TanStack Query in Frontend
+- [x] Database Connection & Alembic Init
 
 ## 🔐 Phase 2: Auth & Family
 - [ ] User Models & Migrations
